@@ -19,7 +19,7 @@
                 head = document.head || document.getElementsByTagName("head")[0] || document.documentElement;
             
             script.async = true;
-            script.src = "/start?_=" + Math.random();
+            script.src = "http://localhost:9000/start?_=" + Math.random();
             script.clean = function() {
                 script.clean = script.onerror = script.onload = script.onreadystatechange = null;
                 if (script.parentNode) {
