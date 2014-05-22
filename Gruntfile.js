@@ -11,10 +11,6 @@ module.exports = function(grunt) {
         browserName: "googlechrome",
         platform: "XP"
     }, {
-        browserName: "internet explorer",
-        platform: "XP",
-        version: "6"
-    }, {
         browserName: "googlechrome",
         platform: "linux"
     }, {
