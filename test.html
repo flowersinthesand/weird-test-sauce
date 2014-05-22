@@ -8,12 +8,34 @@
     </head>
     <body>
         <script>
-        onload = function(){
-            var mochaResults = {"suites":1,"tests":2,"passes":1,"pending":0,"failures":1,"start":"2014-05-22T03:41:35.399Z","end":"2014-05-22T03:41:35.427Z","duration":28,"reports":[{"name":"fail","result":false,"message":"failed","stack":"Error: failed\n    at Context.<anonymous> (http://localhost:9000/test.js:5:15)\n    at callFn (http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4338:21)\n    at Test.Runnable.run (http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4331:7)\n    at Runner.runTest (http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4728:10)\n    at http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4806:12\n    at next (http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4653:14)\n    at http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4663:7\n    at next (http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4601:23)\n    at http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:4630:5\n    at timeslice (http://cdnjs.cloudflare.com/ajax/libs/mocha/1.19.0/mocha.js:5763:27)","titles":["A"]}]};
-            setTimeout(function() {
-                window.mochaResults = mochaResults;
-            }, 5000);
-        };
+        // Called by server
+        function onstart(text) {
+            window.mochaResults = JSON.parse(text);
+        }
+        
+        // A vanilla form of longpolljsonp
+        (function poll() {
+            var script = document.createElement("script"),
+                head = document.head || document.getElementsByTagName("head")[0] || document.documentElement;
+            
+            script.async = true;
+            script.src = "/start?_=" + Math.random();
+            script.clean = function() {
+                script.clean = script.onerror = script.onload = script.onreadystatechange = null;
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            };
+            script.onload = script.onreadystatechange = function() {
+                if (!script.readyState || /loaded|complete/.test(script.readyState)) {
+                    if (script.clean) {
+                        script.clean();
+                    }
+//                     poll();
+                }
+            };
+            head.insertBefore(script, head.firstChild);
+        })();
         </script>
     </body>
 </html>

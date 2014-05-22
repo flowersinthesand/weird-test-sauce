@@ -1,3 +1,7 @@
+var fs = require("fs");
+var url = require("url");
+var Mocha = require("mocha");
+
 module.exports = function(grunt) {
     var browsers = [{
         browserName: "firefox",
@@ -24,7 +28,42 @@ module.exports = function(grunt) {
             server: {
                 options: {
                     base: "",
-                    port: 9000
+                    port: 9000,
+                    middleware: function(connect, options, middlewares) {
+                        var mocha = new Mocha();
+                        mocha.addFile(__dirname + "/test.js");
+                        middlewares.push(function(req, res, next) {
+                            var urlObj = url.parse(req.url, true);
+                            switch(urlObj.pathname) {
+                            case "/start":
+                                res.setHeader("content-type", "text/javascript; utf-8");
+                                
+                                var runner = mocha.run();
+                                var failedTests = [];
+                                runner.on("end", function() {
+                                    var mochaResults = runner.stats;
+                                    mochaResults.reports = failedTests;
+                                    res.end("onstart(" + JSON.stringify(JSON.stringify(mochaResults)) + ")");
+                                });
+                                runner.on("fail", function(test, err) {
+                                    function flattenTitles(test) {
+                                        var titles = [];
+                                        while (test.parent.title) {
+                                            titles.push(test.parent.title);
+                                            test = test.parent;
+                                        }
+                                        return titles.reverse();
+                                    };
+                                    failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test)});
+                                });
+                                break;
+                            default:
+                                next();
+                                break;
+                            }
+                        });
+                        return middlewares;
+                    }
                 }
             }
         },
@@ -44,5 +83,6 @@ module.exports = function(grunt) {
     });
     grunt.loadNpmTasks("grunt-contrib-connect");
     grunt.loadNpmTasks("grunt-saucelabs");
+    grunt.registerTask("test-local", ["connect:server:keepalive"]);
     grunt.registerTask("test", ["connect:server", "saucelabs-mocha"]);
 };
