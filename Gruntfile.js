@@ -26,14 +26,14 @@ module.exports = function(grunt) {
                     base: "",
                     port: 9000,
                     middleware: function(connect, options, middlewares) {
-                        var mocha = new Mocha();
-                        mocha.addFile(__dirname + "/test.js");
                         middlewares.push(function(req, res, next) {
                             var urlObj = url.parse(req.url, true);
                             switch(urlObj.pathname) {
                             case "/start":
                                 res.setHeader("content-type", "text/javascript; utf-8");
-                                
+                                delete require.cache[require.resolve("./test.js")];
+                                var mocha = new Mocha({grep: /sse|streamxhr/});
+                                mocha.addFile("./test.js");
                                 var runner = mocha.run();
                                 var failedTests = [];
                                 runner.on("end", function() {
